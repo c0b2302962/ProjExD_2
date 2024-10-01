@@ -3,7 +3,6 @@ import random
 import sys
 import pygame as pg
 import time
-import math
 
 
 WIDTH, HEIGHT = 1100, 650
@@ -72,6 +71,7 @@ def create_bomb_assets():
 
 
 #課題3(カーソルまで途中)
+#各方向に応じたこうかとんの画像を生成し、返す
 def create_kk_images(kk_img):
     kk_images = {
         (+5,0): kk_img,
@@ -100,9 +100,7 @@ def main():
 
     #課題2
     bb_imgs,saccs = create_bomb_assets()
-    
-
-    bb = bb_imgs[0]
+    bb = bb_imgs[0] #最初の爆弾画像を選択
     # bb = pg.Surface((20, 20)) #空のSurface
     # bb.set_colorkey((0,0,0))
     # pg.draw.circle(bb, (255, 0, 0), (10, 10), 10)
@@ -110,16 +108,18 @@ def main():
     bb_rct.centerx = random.randint(0,WIDTH)
     bb_rct.centery = random.randint(0,HEIGHT)
 
-
+    #vx,vy: 爆弾の移動速度を設定
     # bb_rct = bb_imgs[0].get_rect(center=(random.randint(0, WIDTH), random.randint(0, HEIGHT)))
     vx,vy = +5,-5
     
-
+    #フレームレートを管理するためのクロックオブジェクト
     clock = pg.time.Clock()
+    #タイマーとして、ゲームの経過時間をカウント
     tmr = 0
 
 
     kk_images = create_kk_images(kk_img)  # こうかとんの画像を生成
+    #current_kk_img: 初期の向きを設定（デフォルトで上向き）
     current_kk_img = kk_images[pg.K_UP]
 
 
@@ -128,7 +128,7 @@ def main():
             if event.type == pg.QUIT: 
                 return
             
-
+        #screen.blit: 背景を画面に描画
         screen.blit(bg_img, [0, 0])
         if kk_rct.colliderect(bb_rct): #bb_rct.colliderect(kk_rct)
             #こうかとんと爆弾が重なっていたら
@@ -138,6 +138,7 @@ def main():
         
 
         #課題2
+        #avx,avy: 現在の加速度を計算
         # タイマーに応じて爆弾のサイズと加速度を更新
         index = min(tmr//500,9)
         bb = bb_imgs[index]
@@ -145,14 +146,15 @@ def main():
         avy = vy * saccs[index]
         # avx *= 1 if tmr % 2 == 0 else -1
 
-
+        #爆弾の位置を加速度に基づいて移動
         bb_rct.move_ip(avx, avy)
 
 
+        #screen.blit: 現在の爆弾を画面に描画
         screen.blit(bb, bb_rct)
 
 
-        key_lst = pg.key.get_pressed()
+        key_lst = pg.key.get_pressed() #pg.key.get_pressed(): 現在押されているキーの状態を取得
         sum_mv = [0, 0] #横座標、縦座標
         # if key_lst[pg.K_UP]:
         #     sum_mv[1] -= 5
@@ -171,6 +173,7 @@ def main():
                 current_kk_img = kk_images[key] 
 
 
+        #移動量を適用してこうかとんの位置を更新
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True,True):
             kk_rct.move_ip(-sum_mv[0],-sum_mv[1])
@@ -178,6 +181,7 @@ def main():
         screen.blit(current_kk_img,kk_rct)
 
 
+        #爆弾の位置を更新し、画面の端に達した場合は反転
         bb_rct.move_ip(vx,vy)
         yoko,tate = check_bound(bb_rct)
         if not yoko:
